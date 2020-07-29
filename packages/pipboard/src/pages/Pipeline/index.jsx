@@ -16,6 +16,9 @@ export default class Pipeline extends Component {
     fields: PIPELINE_MAP, // pipeline or job,
     currentPage: 1,
     totalCount: 0,
+    sort: {
+      createdAt: 'desc',
+    },
   }
 
   changePage = async (value) => {
@@ -37,18 +40,19 @@ export default class Pipeline extends Component {
         params: {
           offset: (currentPage - 1) * PAGE_SIZE, 
           limit: PAGE_SIZE,
+          order: {
+            createdAt: ''
+          }
         },
       });
       const result = response.rows.map((item) => {
         return {
           ...item,
-          createdAt: new Date(item.createdAt).toLocaleString(),
-          endTime: new Date(item.endTime).toLocaleString(),
           status: PIPELINE_STATUS[item.status],
         };
       });
       this.setState({
-        models: result,
+        models: this.getSortedData(result, this.state.sort.createdAt),
         totalCount: response.count,
         currentPage,
       });
@@ -57,17 +61,39 @@ export default class Pipeline extends Component {
     }
   }
 
+  getSortedData = (data, order) => {
+    data.sort((a, b) => {
+      const res = new Date(a.createdAt).valueOf() - new Date(b.createdAt).valueOf();
+      return (order === 'asc') ? (res > 0 ? 1 : -1) : (res > 0 ? -1 : 1);
+    });
+    return data;
+  }
+
+  onSort = (dataIndex, order) => {
+    if (dataIndex !== 'createdAt') return;
+    this.setState((prevState) => {
+      return {
+        models: this.getSortedData([ ...prevState.models ], order),
+        sort: {
+          [dataIndex]: order
+        },
+      };
+    });
+  }
+
   componentDidMount = async () => {
     await this.fetchData(1);
   }
 
   render() {
-    const { models, fields, currentPage, totalCount } = this.state;
+    const { models, fields, sort, currentPage, totalCount } = this.state;
     return (
       <div className="pipeline">
         <Table dataSource={models}
           hasBorder={false}
           stickyHeader
+          sort={sort}
+          onSort={this.onSort}
           offsetTop={45}>
           {
             fields.map(field => <Table.Column 

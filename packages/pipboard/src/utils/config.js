@@ -61,6 +61,7 @@ export const PIPELINE_MAP = [
     field: 'createdAt',
     width: 50,
     sortable: true,
+    cell: (value) => new Date(value).toLocaleString(),
   },
 ];
 
@@ -127,6 +128,7 @@ export const JOB_MAP = [
     name: 'End Time',
     width: 100,
     field: 'endTime',
+    cell: (value) =>  new Date(value).toLocaleString(),
   },
   {
     name: 'Model',

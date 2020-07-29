@@ -22,6 +22,9 @@ import { PluginManager } from './plugin';
 interface QueryOptions {
   limit: number;
   offset: number;
+  order?: {
+    [field: string]: 'ASC' | 'DESC',
+  };
 }
 
 interface SelectJobsFilter {
@@ -79,12 +82,12 @@ export class PipelineService {
   }
 
   async queryPipelines(opts?: QueryOptions): Promise<{rows: PipelineModel[], count: number}> {
-    const { offset, limit } = opts || {};
+    const { offset, limit, order } = opts || {};
     return this.pipeline.findAndCountAll({
       offset,
       limit,
       order: [
-        [ 'createdAt', 'DESC' ]
+        [ 'createdAt', order.createdAt || 'DESC' ]
       ],
       include: [
         {
